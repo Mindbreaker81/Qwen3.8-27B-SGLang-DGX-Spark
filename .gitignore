@@ -13,7 +13,7 @@
 !bench/ndec.py
 !bench/ab-image.sh
 # DFlash2 path (2026-08-19): serving script (the image is pulled from
-# Docker Hub since 2026-09-05; the patch/ builder lives at tag dflash2-builder-last)
+# Docker Hub since 2026-09-05; the patch/ builder lives at commit 751e29e)
 !start-dflash.sh
 # Decision records and plans, per file — analysis write-ups stay untracked
 !docs/

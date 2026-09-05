@@ -15,7 +15,7 @@ Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_hea
 
 **Removed:**
 
-- `patch/` (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`) and the `-minoverlay` image mode. Last commit carrying them: git tag `dflash2-builder-last` (push the tag together with the merge so clones can resolve it).
+- `patch/` (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`) and the `-minoverlay` image mode. Last commit carrying them: `751e29e` (on `main`).
 
 **Docs:**
 
@@ -25,8 +25,8 @@ Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_hea
 
 **Verified on the GB10 (2026-09-05):** four interleaved single-session runs, n=6 per side, concurrency 10, `bench/ab-image.sh`. Both images boot DFLASH with the selector folded into the draft CUDA graph on both checkpoints; no earlyoom kills (earlyoom is inactive on this box).
 
-- Serving image, DFlash2 self-built → official: `RadixArk/…-NVFP4-BF16-LMHead` (modelopt) 54.58 → 54.57 code and 25.69 → 25.70 essay, a tie; `orcarouter/…-Uncensored-NVFP4` (compressed-tensors) 46.47 → 53.05 code (+14.1%) and 24.06 → 25.58 essay (+6.3%). Free on modelopt, a real gain on compressed-tensors — plausibly the 69 upstream commits the official image carries, newest being sglang #35455.
-- Engine, MTP → DFlash2 in the same session: 2.25× code / 1.41× essay on the default checkpoint, 2.20× / 1.46× on the uncensored one. Independently consistent with issue #6, and larger than the ~1.5× reported there.
+- Serving image, DFlash2 self-built → official: `RadixArk/…-NVFP4-BF16-LMHead` (modelopt) 54.58 → 54.57 code and 25.69 → 25.70 essay, a tie; a compressed-tensors NVFP4 fine-tune of the same model 46.47 → 53.05 code (+14.1%) and 24.06 → 25.58 essay (+6.3%). Free on modelopt, a real gain on compressed-tensors — plausibly the 69 upstream commits the official image carries, newest being sglang #35455.
+- Engine, MTP → DFlash2 in the same session: 2.25× code / 1.41× essay on the default checkpoint, 2.20× / 1.46× on the compressed-tensors fine-tune. Independently consistent with issue #6, and larger than the ~1.5× reported there.
 - Stale data found: MTP now measures 24.2 code / 18.2 essay against 34.5 / 24.1 from 2026-08-18. Day and checkpoint export both differ, so the cause is unconfirmed; the README flags the August MTP/DSpark cells as FP4-head-era until someone re-runs `QUANT=nvfp4-fp4`.
 - Method: two boots of the same image differed 6.5% on essay, so sides must be interleaved within one session. The first `ndec.py` pass after a boot is unusable (cold start collapses the two-call denominator; readings of 89, 183 and −371 tok/s observed) — `bench/ab-image.sh` discards one pass per boot.
 

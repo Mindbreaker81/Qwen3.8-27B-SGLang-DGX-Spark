@@ -23,7 +23,7 @@ Pin the **index** digest, not the arm64 child: `docker pull repo@<index>` resolv
 ## Affected files
 
 - `start-dflash.sh` — `IMAGE` default becomes `lmsysorg/sglang@sha256:616a…`; `ensure_image()` becomes probe → `docker pull` → re-verify → local readable tag, with the house-style `|| { echo …; exit 1; }` failure line that names the `IMAGE=` rollback; delete the `*-minoverlay` case and `build_mode`; rewrite the header comment (lines 8-16) to drop "built automatically from patch/" and "nvfp4-fp4 needs the image patch". Everything else (draft pin, `DF_TARGET`, 0.90 pin, `extra_buffer`, `DF_EXTRA`, `exec start.sh`) unchanged.
-- `patch/` — delete (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`). Tag the pre-removal commit `dflash2-builder-last` (on `751e29e`) so it stays discoverable; name the tag in README and CHANGELOG.
+- `patch/` — delete (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`). Reference the pre-removal commit `751e29e` (upstream `main`) in README and CHANGELOG so the builder stays discoverable.
 - `.gitignore` — remove `!patch/` and `!patch/**`, reword the line-14 comment; add per-directory whitelist for `docs/brainstorms/*.md` and `docs/plans/*.md` (parent chain must be un-ignored first: `!docs/`, `!docs/brainstorms/`, `!docs/brainstorms/*.md`, `!docs/plans/`, `!docs/plans/*.md`). Not `!docs/**`: analysis write-ups must stay untracked by policy.
 - `README.md` — 13 sites: 35 (image table gains a DFlash2 row), 62, 72, 73 (delete row), 80, 84, 134, 136, 185, 263, 266, 282-283, 310; add `docs/` to the layout tree and whitelist prose; relabel the 2026-08-19 DFlash2 numbers as "self-built image, replication on the official image pending"; keep the one-canonical-table rule (no tok/s outside Measured).
 - `CHANGELOG.md` — new top entry `## 2026-09-05 — DFlash2 serves from the official SGLang image; builder removed` with `**Changed:**`, `**Removed:**`, `**Docs:**` and the digest/build-commit line.
@@ -56,7 +56,7 @@ Mirror `ensure_cached()` (`start-dflash.sh:53-69`): probe, fetch, re-verify, har
 
 ## Conventions to follow
 
-- Commits: sentence-case imperative, optional `area:` prefix, no conventional-commit type; body explains why and carries an explicit `Verified:` line stating exactly what was and was not run (the GB10 boot is pending, say so). Name where removed code still lives (tag `dflash2-builder-last`).
+- Commits: sentence-case imperative, optional `area:` prefix, no conventional-commit type; body explains why and carries an explicit `Verified:` line stating exactly what was and was not run (the GB10 boot is pending, say so). Name where removed code still lives (commit `751e29e`).
 - Bash: `set -euo pipefail`, braced+quoted expansions, `[[ ]]`, lowercase `snake_case` functions with `local`, errors as `echo "…"; exit 1` to stdout, optional flags as arrays.
 - Precedence rule stays: shell env > `.env` > script default; `start-dflash.sh` does not read `.env`, so only a shell-env `IMAGE=` overrides it (document as today).
 - README: one canonical performance table; every number carries date + engine + image; Scripts table one row per script; whitelist prose (line 80) and layout tree mirror `.gitignore`.
@@ -76,5 +76,5 @@ Deferred, pre-existing and out of scope: README line 60 and the Quick-start head
 ## Commit plan (as landed)
 
 1. `Track docs/brainstorms and docs/plans; add the DFlash2 official-image decision record and plan` — `.gitignore` docs whitelist + the two docs only (the README whitelist/layout lines went into commit 2 with the rest of the README edit).
-2. `start-dflash.sh: pull the official DFlash2 image (digest-pinned) and drop the patch/ builder` — script, `patch/` removal, `.gitignore` patch lines, README, CHANGELOG, `stop.sh` header. Tag `dflash2-builder-last` created on the parent commit first (local only; push it with the merge).
+2. `start-dflash.sh: pull the official DFlash2 image (digest-pinned) and drop the patch/ builder` — script, `patch/` removal, `.gitignore` patch lines, README, CHANGELOG, `stop.sh` header. Removed code is referenced by commit `751e29e` (upstream `main`), not by a tag, since a PR carries commits only.
 3. Review-loop fixes (local panel: correctness, docs-vs-code, security — all GO): alias tag never re-points an existing tag, legacy-image note only after a successful pinned pull, README chronology/draft-name/size fixes, CHANGELOG `stop.sh` bullet.

@@ -12,7 +12,7 @@ set -euo pipefail
 # lm_head selector (#35496), so every DF_TARGET works, including the
 # packed-FP4 head. Override with IMAGE=<ref>; a locally present image is
 # used as-is. The self-built image machinery (patch/) was retired
-# 2026-09-05 and lives at git tag dflash2-builder-last.
+# 2026-09-05; commit 751e29e is the last one carrying it.
 # CRASH RULES (NVFP4): --mem-fraction-static 0.90 (0.95 hard-rebooted the
 # GB10 once at draft-graph capture, on the self-built image; the cookbook
 # pins 0.80 on GB10 because 0.85 trips DGX OS earlyoom). Default
@@ -63,7 +63,7 @@ ensure_image() {
   fi
   echo "${IMAGE} not present locally — pulling from Docker Hub (~14 GB compressed for arm64) ..."
   docker pull "${IMAGE}" \
-    || { echo "pull failed for ${IMAGE} — check network / Docker Hub rate limit (docker login helps); a tag that only ever existed locally must be rebuilt or loaded first (the retired builder is at git tag dflash2-builder-last), or set IMAGE= to an image you have"; exit 1; }
+    || { echo "pull failed for ${IMAGE} — check network / Docker Hub rate limit (docker login helps); a tag that only ever existed locally must be rebuilt or loaded first (the retired builder is at commit 751e29e), or set IMAGE= to an image you have"; exit 1; }
   docker image inspect "${IMAGE}" >/dev/null 2>&1 \
     || { echo "pull reported success but ${IMAGE} is still missing"; exit 1; }
   (( pinned )) || return 0
