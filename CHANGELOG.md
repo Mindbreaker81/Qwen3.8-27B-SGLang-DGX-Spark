@@ -4,7 +4,7 @@ All notable changes to this project are documented here. Dates are commit dates.
 
 ## 2026-09-05 — DFlash2 serves from the official SGLang image; `patch/` builder removed
 
-Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_head` selector: `lmsysorg/sglang:dev-qwen38-27b-dflash2`, the tag the [cookbook](https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-27B) maps to DGX Spark ([issue #6](https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/issues/6)). `v0.5.18` still predates DFlash2 (its commit is not an ancestor of the tag), so the dev tag is pinned by digest instead of waiting for a release.
+Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_head` selector: `lmsysorg/sglang:dev-qwen38-27b-dflash2`, the tag the [cookbook](https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-27B) maps to DGX Spark ([issue #6](https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/issues/6)). `v0.5.18` was tagged later but does not contain the DFlash2 commit (GitHub compare: diverged), so the dev tag is pinned by digest instead of waiting for a release.
 
 **Changed:**
 
@@ -19,7 +19,7 @@ Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_hea
 
 **Docs:**
 
-- README no longer claims DFlash2 has no upstream image: Requirements, Quick start, Scripts, Configuration, Notable serving choices, Measured, Logs & troubleshooting (earlyoom, pull failures, upstream watchpoints #36548 / #38009), Repository layout and Credits updated. The 2026-08-19 DFlash2 numbers are labelled as taken on the self-built image; replication on the official image is pending.
+- README no longer claims DFlash2 has no upstream image: Requirements, Quick start, Scripts, Configuration, Notable serving choices, Measured, Logs & troubleshooting (earlyoom, pull failures, upstream watchpoints #36548 / #38009), Repository layout and Credits updated. The 2026-08-19 DFlash2 numbers are labelled as taken on the self-built image; official-image replication is in **Verified** below.
 - `docs/brainstorms/*.md` and `docs/plans/*.md` are now tracked (decision record and plan for this change).
 - `stop.sh` header: names `start-dflash.sh` and no longer implies `start-mtp-8889.sh` is tracked (comment only).
 
