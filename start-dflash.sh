@@ -55,22 +55,31 @@ IMAGE="${IMAGE:-${IMAGE_REPO}@${IMAGE_DIGEST}}"
 LEGACY_IMAGE="lmsysorg/sglang:qwen38-27b-dflash2"   # the retired self-built image
 
 ensure_image() {
+  local pinned=0
+  [[ "${IMAGE}" == "${IMAGE_REPO}@${IMAGE_DIGEST}" ]] && pinned=1
   if docker image inspect "${IMAGE}" >/dev/null 2>&1; then
     echo "Using ${IMAGE}"
     return
   fi
-  if docker image inspect "${LEGACY_IMAGE}" >/dev/null 2>&1; then
-    echo "note: the self-built ${LEGACY_IMAGE} is no longer the default (IMAGE=${LEGACY_IMAGE} keeps using it; docker image rm ${LEGACY_IMAGE} frees the space)"
-  fi
   echo "${IMAGE} not present locally — pulling from Docker Hub (~14 GB compressed for arm64) ..."
   docker pull "${IMAGE}" \
-    || { echo "pull failed for ${IMAGE} — check network / Docker Hub rate limit (docker login helps), or set IMAGE= to a local image"; exit 1; }
+    || { echo "pull failed for ${IMAGE} — check network / Docker Hub rate limit (docker login helps); a tag that only ever existed locally must be rebuilt or loaded first (the retired builder is at git tag dflash2-builder-last), or set IMAGE= to an image you have"; exit 1; }
   docker image inspect "${IMAGE}" >/dev/null 2>&1 \
     || { echo "pull reported success but ${IMAGE} is still missing"; exit 1; }
+  (( pinned )) || return 0
   # A digest pull shows TAG=<none> in `docker images`; alias it so it reads as
-  # what it is and does not look like a prune candidate.
-  if [[ "${IMAGE}" == "${IMAGE_REPO}@${IMAGE_DIGEST}" ]]; then
+  # what it is and does not look like a prune candidate. Never re-point a tag
+  # that already exists (e.g. a manual `docker pull` of the rolling dev tag):
+  # the container runs by digest either way.
+  if docker image inspect "${IMAGE_REPO}:${IMAGE_TAG}" >/dev/null 2>&1; then
+    docker image inspect --format '{{join .RepoDigests ","}}' "${IMAGE_REPO}:${IMAGE_TAG}" | grep -q "${IMAGE_DIGEST}" \
+      || echo "note: local tag ${IMAGE_REPO}:${IMAGE_TAG} points at a different build; leaving it alone (this run uses the pinned digest)"
+  else
     docker tag "${IMAGE}" "${IMAGE_REPO}:${IMAGE_TAG}" || true
+  fi
+  # Only now, with the new image safely on disk, mention the retired one.
+  if docker image inspect "${LEGACY_IMAGE}" >/dev/null 2>&1; then
+    echo "note: the self-built ${LEGACY_IMAGE} is no longer the default (IMAGE=${LEGACY_IMAGE} keeps using it; docker image rm ${LEGACY_IMAGE} frees the space)"
   fi
 }
 ensure_image

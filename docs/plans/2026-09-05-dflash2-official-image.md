@@ -72,7 +72,8 @@ Deferred, pre-existing and out of scope: README line 60 and the Quick-start head
 
 **Estimated size:** M (~60-80 LOC of script/gitignore change, ~40 README/CHANGELOG lines touched, 4,800 LOC deleted under `patch/`).
 
-## Commit plan
+## Commit plan (as landed)
 
-1. `Track docs/brainstorms and docs/plans; add DFlash2 official-image brainstorm and plan` — `.gitignore` docs whitelist + the two docs + README whitelist/layout lines for `docs/`.
-2. `start-dflash.sh: pull the official DFlash2 image (digest-pinned) and drop the patch/ builder` — script, `patch/` removal, `.gitignore` patch lines, README, CHANGELOG, `stop.sh` header. Tag `dflash2-builder-last` on the parent commit first.
+1. `Track docs/brainstorms and docs/plans; add the DFlash2 official-image decision record and plan` — `.gitignore` docs whitelist + the two docs only (the README whitelist/layout lines went into commit 2 with the rest of the README edit).
+2. `start-dflash.sh: pull the official DFlash2 image (digest-pinned) and drop the patch/ builder` — script, `patch/` removal, `.gitignore` patch lines, README, CHANGELOG, `stop.sh` header. Tag `dflash2-builder-last` created on the parent commit first (local only; push it with the merge).
+3. Review-loop fixes (local panel: correctness, docs-vs-code, security — all GO): alias tag never re-points an existing tag, legacy-image note only after a successful pinned pull, README chronology/draft-name/size fixes, CHANGELOG `stop.sh` bullet.
