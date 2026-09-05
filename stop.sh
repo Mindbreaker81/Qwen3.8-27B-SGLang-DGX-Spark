@@ -2,10 +2,12 @@
 set -euo pipefail
 
 # Stop every SGLang component we can start. Works whether you launched with
-# ./start.sh (EAGLE), ./start-dspark.sh (DSpark), or ./start-mtp-8889.sh.
+# ./start.sh (EAGLE/MTP), ./start-dspark.sh (DSpark) or ./start-dflash.sh
+# (DFlash2) — all three share one container name. The legacy MTP sidecar
+# (start-mtp-8889.sh, untracked) is cleaned up too if present.
 # Idempotent: anything that isn't running is skipped with a message.
 
-CONTAINER_NAME="qwen3.8-27b-sglang"        # main engine (start.sh / start-dspark.sh)
+CONTAINER_NAME="qwen3.8-27b-sglang"        # main engine (start.sh / start-dspark.sh / start-dflash.sh)
 MTP_CONTAINER_NAME="qwen3.8-27b-sglang-mtp" # MTP engine (start-mtp-8889.sh)
 PID_FILE=".sglang.pid"
 MTP_PID_FILE=".sglang-mtp.pid"

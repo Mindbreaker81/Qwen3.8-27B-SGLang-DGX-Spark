@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here. Dates are commit dates.
 
+## 2026-09-05 — DFlash2 serves from the official SGLang image; `patch/` builder removed
+
+Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_head` selector: `lmsysorg/sglang:dev-qwen38-27b-dflash2`, the tag the [cookbook](https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-27B) maps to DGX Spark ([issue #6](https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/issues/6)). `v0.5.18` still predates DFlash2 (its commit is not an ancestor of the tag), so the dev tag is pinned by digest instead of waiting for a release.
+
+**Changed:**
+
+- `start-dflash.sh` defaults `IMAGE` to `lmsysorg/sglang@sha256:616a3e97f45191af975896cfa644279096cb31bd408a071c2e99ca7209c3cafe` — the index digest of `dev-qwen38-27b-dflash2` (upstream build `5f55db35e` on branch `dflash2-pin-1cf2b8c-nccl`, 2026-08-22; contains sglang #35371, #35496, #34763) — and pulls it on first run (~14 GB compressed, arm64). No git clone, no `docker build`. The pulled image is aliased locally as `lmsysorg/sglang:dev-qwen38-27b-dflash2`.
+- `IMAGE=<ref>` override unchanged; a locally present image is used as-is, so `IMAGE=lmsysorg/sglang:qwen38-27b-dflash2` keeps running an already-built legacy image. The script prints a note if it finds that legacy image while pulling the official one.
+- `DF_TARGET=nvfp4-fp4` no longer depends on a local patch: the image's selector handles the packed-FP4 head.
+- Draft pin, `DF_TARGET` defaults, `--mem-fraction-static 0.90`, forced `extra_buffer`: unchanged.
+
+**Removed:**
+
+- `patch/` (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`) and the `-minoverlay` image mode. Last commit carrying them: git tag `dflash2-builder-last`.
+
+**Docs:**
+
+- README no longer claims DFlash2 has no upstream image: Requirements, Quick start, Scripts, Configuration, Notable serving choices, Measured, Logs & troubleshooting (earlyoom, pull failures, upstream watchpoints #36548 / #38009), Repository layout and Credits updated. The 2026-08-19 DFlash2 numbers are labelled as taken on the self-built image; replication on the official image is pending.
+- `docs/brainstorms/*.md` and `docs/plans/*.md` are now tracked (decision record and plan for this change).
+
+**Not yet verified on the GB10:** this entry describes the scripted behavior. The official-image boot (`DFLASH` + `folded into the draft cuda graph` in `.sglang.log`, `journalctl -u earlyoom` clean at 0.90/16) and a `bench/ndec.py` replication are the gate before this reaches `main`.
+
 ## 2026-08-25 — Default NVFP4 uses the dense BF16 `lm_head`
 
 SGLang now ships two NVFP4 checkpoints ([cookbook split](https://github.com/sgl-project/sglang/pull/36020)): packed-FP4 `lm_head` vs dense BF16. Cookbook recipes were measured against the BF16-head export, so this repo follows that.

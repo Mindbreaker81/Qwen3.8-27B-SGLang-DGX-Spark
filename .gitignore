@@ -11,11 +11,9 @@
 !bench/
 !bench/bench.sh
 !bench/ndec.py
-# DFlash2 path (2026-08-19): serving script, image builds, and the overlay
+# DFlash2 path (2026-08-19): serving script (the image is pulled from
+# Docker Hub since 2026-09-05; the patch/ builder lives at tag dflash2-builder-last)
 !start-dflash.sh
-# DFlash2 build machinery (self-contained builder + patch + overlay)
-!patch/
-!patch/**
 # Decision records and plans, per file — analysis write-ups stay untracked
 !docs/
 !docs/brainstorms/
