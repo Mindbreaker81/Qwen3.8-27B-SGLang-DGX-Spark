@@ -23,7 +23,12 @@ Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_hea
 - `docs/brainstorms/*.md` and `docs/plans/*.md` are now tracked (decision record and plan for this change).
 - `stop.sh` header: names `start-dflash.sh` and no longer implies `start-mtp-8889.sh` is tracked (comment only).
 
-**Not yet verified on the GB10:** this entry describes the scripted behavior. The official-image boot (`DFLASH` + `folded into the draft cuda graph` in `.sglang.log`, `journalctl -u earlyoom` clean at 0.90/16) and a `bench/ndec.py` replication are the gate before this reaches `main`.
+**Verified on the GB10 (2026-09-05):** four interleaved single-session runs, n=6 per side, concurrency 10, `bench/ab-image.sh`. Both images boot DFLASH with the selector folded into the draft CUDA graph on both checkpoints; no earlyoom kills (earlyoom is inactive on this box).
+
+- Serving image, DFlash2 self-built → official: `RadixArk/…-NVFP4-BF16-LMHead` (modelopt) 54.58 → 54.57 code and 25.69 → 25.70 essay, a tie; `orcarouter/…-Uncensored-NVFP4` (compressed-tensors) 46.47 → 53.05 code (+14.1%) and 24.06 → 25.58 essay (+6.3%). Free on modelopt, a real gain on compressed-tensors — plausibly the 69 upstream commits the official image carries, newest being sglang #35455.
+- Engine, MTP → DFlash2 in the same session: 2.25× code / 1.41× essay on the default checkpoint, 2.20× / 1.46× on the uncensored one. Independently consistent with issue #6, and larger than the ~1.5× reported there.
+- Stale data found: MTP now measures 24.2 code / 18.2 essay against 34.5 / 24.1 from 2026-08-18. Day and checkpoint export both differ, so the cause is unconfirmed; the README flags the August MTP/DSpark cells as FP4-head-era until someone re-runs `QUANT=nvfp4-fp4`.
+- Method: two boots of the same image differed 6.5% on essay, so sides must be interleaved within one session. The first `ndec.py` pass after a boot is unusable (cold start collapses the two-call denominator; readings of 89, 183 and −371 tok/s observed) — `bench/ab-image.sh` discards one pass per boot.
 
 ## 2026-08-25 — Default NVFP4 uses the dense BF16 `lm_head`
 
