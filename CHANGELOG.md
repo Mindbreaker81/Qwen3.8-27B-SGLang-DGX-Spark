@@ -2,6 +2,34 @@
 
 All notable changes to this project are documented here. Dates are commit dates.
 
+## 2026-09-05 — DFlash2 serves from the official SGLang image; `patch/` builder removed
+
+Upstream now publishes a multi-arch image with DFlash2 and the quantized-`lm_head` selector: `lmsysorg/sglang:dev-qwen38-27b-dflash2`, the tag the [cookbook](https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-27B) maps to DGX Spark ([issue #6](https://github.com/MiaAI-Lab/Qwen3.8-27B-SGLang-DGX-Spark/issues/6)). `v0.5.18` still predates DFlash2 (its commit is not an ancestor of the tag), so the dev tag is pinned by digest instead of waiting for a release.
+
+**Changed:**
+
+- `start-dflash.sh` defaults `IMAGE` to `lmsysorg/sglang@sha256:616a3e97f45191af975896cfa644279096cb31bd408a071c2e99ca7209c3cafe` — the index digest of `dev-qwen38-27b-dflash2` (upstream build `5f55db35e` on branch `dflash2-pin-1cf2b8c-nccl`, 2026-08-22; contains sglang #35371, #35496, #34763) — and pulls it on first run (~14 GB compressed, arm64). No git clone, no `docker build`. The pulled image is aliased locally as `lmsysorg/sglang:dev-qwen38-27b-dflash2`.
+- `IMAGE=<ref>` override unchanged; a locally present image is used as-is, so `IMAGE=lmsysorg/sglang:qwen38-27b-dflash2` keeps running an already-built legacy image. After a successful pull of the pinned image the script notes a leftover legacy image; the local alias tag is only created when no tag of that name exists (never re-pointed).
+- `DF_TARGET=nvfp4-fp4` no longer depends on a local patch: the image's selector handles the packed-FP4 head.
+- Draft pin, `DF_TARGET` defaults, `--mem-fraction-static 0.90`, forced `extra_buffer`: unchanged.
+
+**Removed:**
+
+- `patch/` (`build-dflash2-image.sh`, `dflash2_nvfp4_head.patch`, `overlay-dflash2/`) and the `-minoverlay` image mode. Last commit carrying them: `751e29e` (on `main`).
+
+**Docs:**
+
+- README no longer claims DFlash2 has no upstream image: Requirements, Quick start, Scripts, Configuration, Notable serving choices, Measured, Logs & troubleshooting (earlyoom, pull failures, upstream watchpoints #36548 / #38009), Repository layout and Credits updated. The 2026-08-19 DFlash2 numbers are labelled as taken on the self-built image; replication on the official image is pending.
+- `docs/brainstorms/*.md` and `docs/plans/*.md` are now tracked (decision record and plan for this change).
+- `stop.sh` header: names `start-dflash.sh` and no longer implies `start-mtp-8889.sh` is tracked (comment only).
+
+**Verified on the GB10 (2026-09-05):** four interleaved single-session runs, n=6 per side, concurrency 10, `bench/ab-image.sh`. Both images boot DFLASH with the selector folded into the draft CUDA graph on both checkpoints; no earlyoom kills (earlyoom is inactive on this box).
+
+- Serving image, DFlash2 self-built → official: `RadixArk/…-NVFP4-BF16-LMHead` (modelopt) 54.58 → 54.57 code and 25.69 → 25.70 essay, a tie; a compressed-tensors NVFP4 fine-tune of the same model 46.47 → 53.05 code (+14.1%) and 24.06 → 25.58 essay (+6.3%). Free on modelopt, a real gain on compressed-tensors — plausibly the 69 upstream commits the official image carries, newest being sglang #35455.
+- Engine, MTP → DFlash2 in the same session: 2.25× code / 1.41× essay on the default checkpoint, 2.20× / 1.46× on the compressed-tensors fine-tune. Independently consistent with issue #6, and larger than the ~1.5× reported there.
+- Stale data found: MTP now measures 24.2 code / 18.2 essay against 34.5 / 24.1 from 2026-08-18. Day and checkpoint export both differ, so the cause is unconfirmed; the README flags the August MTP/DSpark cells as FP4-head-era until someone re-runs `QUANT=nvfp4-fp4`.
+- Method: two boots of the same image differed 6.5% on essay, so sides must be interleaved within one session. The first `ndec.py` pass after a boot is unusable (cold start collapses the two-call denominator; readings of 89, 183 and −371 tok/s observed) — `bench/ab-image.sh` discards one pass per boot.
+
 ## 2026-08-25 — Default NVFP4 uses the dense BF16 `lm_head`
 
 SGLang now ships two NVFP4 checkpoints ([cookbook split](https://github.com/sgl-project/sglang/pull/36020)): packed-FP4 `lm_head` vs dense BF16. Cookbook recipes were measured against the BF16-head export, so this repo follows that.
